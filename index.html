@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RVQHash Listening Demo — libri1mix</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      margin: 2rem auto;
+      max-width: 800px;
+      padding: 0 1rem;
+      line-height: 1.4;
+    }
+    h1 { margin-bottom: 0.25rem; }
+    .dataset { color: #888; font-size: 0.9rem; margin-bottom: 2rem; }
+    section { margin-bottom: 2.5rem; }
+    h2 { border-bottom: 2px solid currentColor; padding-bottom: 0.25rem; }
+    table.descriptions {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 0.9rem;
+    }
+    table.descriptions td, table.descriptions th {
+      padding: 0.4rem 0.6rem;
+      text-align: left;
+      border-bottom: 1px solid #ccc4;
+      white-space: pre-wrap;
+      vertical-align: top;
+    }
+    table.descriptions td:first-child, table.descriptions th:first-child {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      white-space: nowrap;
+    }
+    .buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    .buttons button {
+      font: inherit;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      padding: 0.4rem 0.8rem;
+      border: 1px solid #8886;
+      border-radius: 6px;
+      background: Canvas;
+      color: inherit;
+      cursor: pointer;
+    }
+    .buttons button:hover { background: #8881; }
+    .buttons button.active {
+      background: #f80;
+      color: #000;
+      border-color: #f80;
+    }
+    audio { width: 100%; margin-top: 0.5rem; }
+  </style>
+</head>
+<body>
+  <h1>RVQHash Listening Demo</h1>
+  <div class="dataset">libri1mix</div>
+
+  
+
+  <section>
+    <h2>Clip</h2>
+    <div class="buttons" id="stem-buttons"></div>
+    <h2>Run</h2>
+    <div class="buttons" id="run-buttons"></div>
+    <audio id="player" controls loop></audio>
+  </section>
+
+  <script>
+    const STEMS = ["2961-960-0014_2830-3980-0010", "4446-2273-0023_6930-81414-0020", "4970-29093-0018_1221-135766-0002", "4970-29095-0002_8463-294825-0005", "5142-33396-0014_4446-2275-0040", "61-70968-0049_7021-79740-0014", "672-122797-0060_8455-210777-0038", "7127-75947-0035_1580-141084-0021", "7729-102255-0043_1284-1180-0003", "8230-279154-0036_5142-33396-0034"];
+    const LABELS = ["Noisy (DAC)", "Noisy", "RVQHash-Binary", "RVQHash-Blend", "Clean (DAC)", "Clean"];
+    const AUDIO = {"2961-960-0014_2830-3980-0010": {"Noisy (DAC)": "index_audio/0/2961-960-0014_2830-3980-0010.wav", "Noisy": "index_audio/1/2961-960-0014_2830-3980-0010.wav", "RVQHash-Binary": "index_audio/2/2961-960-0014_2830-3980-0010.wav", "RVQHash-Blend": "index_audio/3/2961-960-0014_2830-3980-0010.wav", "Clean (DAC)": "index_audio/4/2961-960-0014_2830-3980-0010.wav", "Clean": "index_audio/5/2961-960-0014_2830-3980-0010.wav"}, "4446-2273-0023_6930-81414-0020": {"Noisy (DAC)": "index_audio/0/4446-2273-0023_6930-81414-0020.wav", "Noisy": "index_audio/1/4446-2273-0023_6930-81414-0020.wav", "RVQHash-Binary": "index_audio/2/4446-2273-0023_6930-81414-0020.wav", "RVQHash-Blend": "index_audio/3/4446-2273-0023_6930-81414-0020.wav", "Clean (DAC)": "index_audio/4/4446-2273-0023_6930-81414-0020.wav", "Clean": "index_audio/5/4446-2273-0023_6930-81414-0020.wav"}, "4970-29093-0018_1221-135766-0002": {"Noisy (DAC)": "index_audio/0/4970-29093-0018_1221-135766-0002.wav", "Noisy": "index_audio/1/4970-29093-0018_1221-135766-0002.wav", "RVQHash-Binary": "index_audio/2/4970-29093-0018_1221-135766-0002.wav", "RVQHash-Blend": "index_audio/3/4970-29093-0018_1221-135766-0002.wav", "Clean (DAC)": "index_audio/4/4970-29093-0018_1221-135766-0002.wav", "Clean": "index_audio/5/4970-29093-0018_1221-135766-0002.wav"}, "4970-29095-0002_8463-294825-0005": {"Noisy (DAC)": "index_audio/0/4970-29095-0002_8463-294825-0005.wav", "Noisy": "index_audio/1/4970-29095-0002_8463-294825-0005.wav", "RVQHash-Binary": "index_audio/2/4970-29095-0002_8463-294825-0005.wav", "RVQHash-Blend": "index_audio/3/4970-29095-0002_8463-294825-0005.wav", "Clean (DAC)": "index_audio/4/4970-29095-0002_8463-294825-0005.wav", "Clean": "index_audio/5/4970-29095-0002_8463-294825-0005.wav"}, "5142-33396-0014_4446-2275-0040": {"Noisy (DAC)": "index_audio/0/5142-33396-0014_4446-2275-0040.wav", "Noisy": "index_audio/1/5142-33396-0014_4446-2275-0040.wav", "RVQHash-Binary": "index_audio/2/5142-33396-0014_4446-2275-0040.wav", "RVQHash-Blend": "index_audio/3/5142-33396-0014_4446-2275-0040.wav", "Clean (DAC)": "index_audio/4/5142-33396-0014_4446-2275-0040.wav", "Clean": "index_audio/5/5142-33396-0014_4446-2275-0040.wav"}, "61-70968-0049_7021-79740-0014": {"Noisy (DAC)": "index_audio/0/61-70968-0049_7021-79740-0014.wav", "Noisy": "index_audio/1/61-70968-0049_7021-79740-0014.wav", "RVQHash-Binary": "index_audio/2/61-70968-0049_7021-79740-0014.wav", "RVQHash-Blend": "index_audio/3/61-70968-0049_7021-79740-0014.wav", "Clean (DAC)": "index_audio/4/61-70968-0049_7021-79740-0014.wav", "Clean": "index_audio/5/61-70968-0049_7021-79740-0014.wav"}, "672-122797-0060_8455-210777-0038": {"Noisy (DAC)": "index_audio/0/672-122797-0060_8455-210777-0038.wav", "Noisy": "index_audio/1/672-122797-0060_8455-210777-0038.wav", "RVQHash-Binary": "index_audio/2/672-122797-0060_8455-210777-0038.wav", "RVQHash-Blend": "index_audio/3/672-122797-0060_8455-210777-0038.wav", "Clean (DAC)": "index_audio/4/672-122797-0060_8455-210777-0038.wav", "Clean": "index_audio/5/672-122797-0060_8455-210777-0038.wav"}, "7127-75947-0035_1580-141084-0021": {"Noisy (DAC)": "index_audio/0/7127-75947-0035_1580-141084-0021.wav", "Noisy": "index_audio/1/7127-75947-0035_1580-141084-0021.wav", "RVQHash-Binary": "index_audio/2/7127-75947-0035_1580-141084-0021.wav", "RVQHash-Blend": "index_audio/3/7127-75947-0035_1580-141084-0021.wav", "Clean (DAC)": "index_audio/4/7127-75947-0035_1580-141084-0021.wav", "Clean": "index_audio/5/7127-75947-0035_1580-141084-0021.wav"}, "7729-102255-0043_1284-1180-0003": {"Noisy (DAC)": "index_audio/0/7729-102255-0043_1284-1180-0003.wav", "Noisy": "index_audio/1/7729-102255-0043_1284-1180-0003.wav", "RVQHash-Binary": "index_audio/2/7729-102255-0043_1284-1180-0003.wav", "RVQHash-Blend": "index_audio/3/7729-102255-0043_1284-1180-0003.wav", "Clean (DAC)": "index_audio/4/7729-102255-0043_1284-1180-0003.wav", "Clean": "index_audio/5/7729-102255-0043_1284-1180-0003.wav"}, "8230-279154-0036_5142-33396-0034": {"Noisy (DAC)": "index_audio/0/8230-279154-0036_5142-33396-0034.wav", "Noisy": "index_audio/1/8230-279154-0036_5142-33396-0034.wav", "RVQHash-Binary": "index_audio/2/8230-279154-0036_5142-33396-0034.wav", "RVQHash-Blend": "index_audio/3/8230-279154-0036_5142-33396-0034.wav", "Clean (DAC)": "index_audio/4/8230-279154-0036_5142-33396-0034.wav", "Clean": "index_audio/5/8230-279154-0036_5142-33396-0034.wav"}};
+
+    const state = { stem: STEMS[0], label: LABELS[0] };
+    const player = document.getElementById('player');
+    const stemButtons = document.getElementById('stem-buttons');
+    const runButtons = document.getElementById('run-buttons');
+
+    function renderButtons(container, values, current, onSelect) {
+      container.innerHTML = '';
+      values.forEach(value => {
+        const button = document.createElement('button');
+        button.textContent = value;
+        button.className = value === current ? 'active' : '';
+        button.addEventListener('click', () => onSelect(value));
+        container.appendChild(button);
+      });
+    }
+
+    function loadClip(stem, label, resetTime) {
+      const wasPaused = player.paused;
+      const savedTime = player.currentTime;
+
+      player.src = AUDIO[stem][label];
+      player.load();
+
+      player.addEventListener('loadedmetadata', function once() {
+        player.removeEventListener('loadedmetadata', once);
+        if (!resetTime) {
+          player.currentTime = Math.min(savedTime, player.duration || savedTime);
+        }
+        if (resetTime || !wasPaused) {
+          player.play();
+        }
+      });
+    }
+
+    function selectStem(stem) {
+      if (stem === state.stem) return;
+      state.stem = stem;
+      renderButtons(stemButtons, STEMS, state.stem, selectStem);
+      loadClip(state.stem, state.label, true);
+    }
+
+    function selectRun(label) {
+      if (label === state.label) return;
+      state.label = label;
+      renderButtons(runButtons, LABELS, state.label, selectRun);
+      loadClip(state.stem, state.label, false);
+    }
+
+    renderButtons(stemButtons, STEMS, state.stem, selectStem);
+    renderButtons(runButtons, LABELS, state.label, selectRun);
+    loadClip(state.stem, state.label, true);
+  </script>
+</body>
+</html>
